@@ -94,7 +94,7 @@ public class SingleThreadStageTask implements Runnable
         if (stage.getCommitPolicy() == BlockCommitPolicy.lax)
             this.strictBlockCommit = false;
         this.usingBlockCommit = (blockCommitRowsCount > 1);
-        this.taskProgress = stage.getProgressTracker().getTaskProgress(taskId);
+        //this.taskProgress = stage.getProgressTracker().getTaskProgress(taskId);
     }
 
     /** Returns the id of this task. */
@@ -170,7 +170,7 @@ public class SingleThreadStageTask implements Runnable
     public void run()
     {
         logInfo("Starting stage task thread", null);
-        taskProgress.begin();
+        //taskProgress.begin();
         context = stage.getPluginContext();
 
         try
@@ -236,17 +236,19 @@ public class SingleThreadStageTask implements Runnable
             while (!cancelled)
             {
                 // Check for cancellation and exit loop if it has occurred.
-                if (schedule.isCancelled())
+                /*
+            	if (schedule.isCancelled())
                 {
                     logInfo("Task has been cancelled", null);
                     break;
                 }
+                */
 
                 // Fetch the next event.
                 event = null;
                 try
                 {
-                    taskProgress.beginExtractInterval();
+                    //taskProgress.beginExtractInterval();
                     genericEvent = extractor.extract();
                 }
                 catch (ExtractorException e)
@@ -268,7 +270,7 @@ public class SingleThreadStageTask implements Runnable
                 }
                 finally
                 {
-                    taskProgress.endExtractInterval();
+                    //taskProgress.endExtractInterval();
                 }
 
                 // Retry if no event returned; debug logging goes here.
