@@ -10,9 +10,9 @@ import com.continuent.tungsten.replicator.extractor.Extractor;
 import com.continuent.tungsten.replicator.extractor.ExtractorWrapper;
 import com.continuent.tungsten.replicator.extractor.ParallelExtractor;
 import com.continuent.tungsten.replicator.extractor.RawExtractor;
-import com.continuent.tungsten.replicator.extractor.mysql.MySQLExtractor;
 import com.continuent.tungsten.replicator.plugin.PluginContext;
 import com.continuent.tungsten.replicator.plugin.ReplicatorPlugin;
+import com.odp.collect.dbreplicator.extractor.Mysql.MySQLExtractor;
 
 public class Main {
 	public void prepare() throws ReplicatorException, InterruptedException {
@@ -23,8 +23,11 @@ public class Main {
 		PluginContext context = null;
 		
 		SingleThreadStageTask singleThreadStageTask = new SingleThreadStageTask(stage, 0);
+		singleThreadStageTask.setSchedule(new SimpleSchedule(stage, singleThreadStageTask));
 		
 		MySQLExtractor mextractor = new MySQLExtractor();
+		mextractor.prepare();
+		mextractor.setLastEventId("mysql-bin.000169:795;-1");
 		//ReplicatorPlugin extractor = stage.getExtractorSpec()
         //        .instantiate(0);
         //if (extractor instanceof RawExtractor)

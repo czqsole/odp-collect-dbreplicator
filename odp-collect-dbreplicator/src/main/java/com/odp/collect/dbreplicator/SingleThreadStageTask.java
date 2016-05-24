@@ -250,19 +250,20 @@ public class SingleThreadStageTask implements Runnable
                 {
                     //taskProgress.beginExtractInterval();
                     genericEvent = extractor.extract();
+                    logger.info("抽取成功？");
                 }
                 catch (ExtractorException e)
                 {
                     String message = "Event extraction failed";
-                    if (context
-                            .getExtractorFailurePolicy() == FailurePolicy.STOP)
-                    {
-                        if (logger.isDebugEnabled())
-                            logger.debug(message, e);
-                        dispatchErrorNotification(message, null, e);
-                        break;
-                    }
-                    else
+                    //if (context
+                    //        .getExtractorFailurePolicy() == FailurePolicy.STOP)
+                    //{
+                    //    if (logger.isDebugEnabled())
+                    //        logger.debug(message, e);
+                    //    dispatchErrorNotification(message, null, e);
+                    //    break;
+                    //}
+                    //else
                     {
                         logError(message, e);
                         continue;
@@ -366,7 +367,7 @@ public class SingleThreadStageTask implements Runnable
 
                 // Submit the event to the schedule to see what we should do
                 // with it.
-                int disposition = schedule.advise(genericEvent);
+                /*int disposition = schedule.advise(genericEvent);
                 if (disposition == Schedule.PROCEED)
                 {
                     // Go ahead and apply this event.
@@ -399,7 +400,7 @@ public class SingleThreadStageTask implements Runnable
                             "Unexpected schedule disposition on event: disposition="
                                     + disposition + " event="
                                     + genericEvent.toString());
-                }
+                }*/
 
                 // Convert to a proper log event and proceed.
                 event = (ReplDBMSEvent) genericEvent;
@@ -413,7 +414,7 @@ public class SingleThreadStageTask implements Runnable
                 // Run filters, unless the event we are looking at is already
                 // filtered. Filtering twice does not really makes sense and
                 // makes filters themselves harder to write.
-                if (!(event instanceof ReplDBMSFilteredEvent))
+                /*if (!(event instanceof ReplDBMSFilteredEvent))
                 {
                     taskProgress.beginFilterInterval();
 
@@ -437,7 +438,7 @@ public class SingleThreadStageTask implements Runnable
                     {
                         taskProgress.endFilterInterval();
                     }
-                }
+                }*/
 
                 // Event was filtered... Get next event.
                 if (event == null)
@@ -796,7 +797,8 @@ public class SingleThreadStageTask implements Runnable
     {
         try
         {
-            taskProgress.beginApplyInterval();
+            //taskProgress.beginApplyInterval();
+        	logger.info(applier.getClass());
             applier.apply(event, doCommit, doRollback, syncTHL);
             if (doCommit)
             {
@@ -821,7 +823,7 @@ public class SingleThreadStageTask implements Runnable
         }
         finally
         {
-            taskProgress.endApplyInterval();
+            //taskProgress.endApplyInterval();
         }
 
     }

@@ -109,7 +109,7 @@ public class ExtractorWrapper implements Extractor
             logger.debug("Source timestamp = " + dbmsEvent.getSourceTstamp()
                     + " - Extracted timestamp = " + extractTimestamp);
 
-        for (Filter filter : autoFilters)
+        /*for (Filter filter : autoFilters)
         {
             try
             {
@@ -123,7 +123,7 @@ public class ExtractorWrapper implements Extractor
                         "Auto-filter operation failed unexpectedly: "
                                 + e.getMessage(), e);
             }
-        }
+        }*/
 
         // See if this is the last fragment.
         if (dbmsEvent.isLastFrag())

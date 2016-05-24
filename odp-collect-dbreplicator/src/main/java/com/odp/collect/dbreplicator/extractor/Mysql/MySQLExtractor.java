@@ -92,9 +92,9 @@ public class MySQLExtractor implements RawExtractor
 
     // Location of binlogs and pattern.
     private String                          binlogFilePattern         = "mysql-bin";
-    private String                          binlogDir                 = "/var/log/mysql";
+    private String                          binlogDir                 = "E:\\github\\odp-collet-dbreplicator\\odp-collect-dbreplicator\\log";
 
-    private boolean                         useRelayLogs              = false;
+    private boolean                         useRelayLogs              = true;
     private long                            relayLogWaitTimeout       = 0;
     private long                            relayLogReadTimeout       = 0;
     private boolean                         deterministicIo           = true;
@@ -571,7 +571,7 @@ public class MySQLExtractor implements RawExtractor
                     logger.debug("Unknown binlog field, skipping");
                     continue;
                 }
-
+                logger.info(logEvent.getClass());
                 if (serverId == -1)
                     serverId = logEvent.serverId;
 
@@ -1107,7 +1107,7 @@ public class MySQLExtractor implements RawExtractor
                 {
                     logger.debug("Performing commit processing in extractor");
 
-                    runtime.getMonitor().incrementEvents(dataArray.size());
+                    //runtime.getMonitor().incrementEvents(dataArray.size());
                     String eventId = getDBMSEventId(position, sessionId);
 
                     dbmsEvent = new DBMSEvent(eventId, dataArray, startTime);
@@ -1200,11 +1200,11 @@ public class MySQLExtractor implements RawExtractor
         }
         catch (Exception e)
         {
-            if (runtime.getExtractorFailurePolicy() == FailurePolicy.STOP)
-                throw new ExtractorException(
-                        "Unexpected failure while extracting event " + position,
-                        e);
-            else
+            //if (runtime.getExtractorFailurePolicy() == FailurePolicy.STOP)
+            //    throw new ExtractorException(
+            //            "Unexpected failure while extracting event " + position,
+            //            e);
+            //else
                 logger.error("Unexpected failure while extracting event "
                         + position, e);
 
@@ -1304,7 +1304,8 @@ public class MySQLExtractor implements RawExtractor
             processFile(new BinlogReader(4, binlogPosition.getFileName(),
                     binlogDir, binlogFilePattern, bufferSize));
         }
-
+        
+        logger.info("Extract the next event.");
         // Extract the next event.
         DBMSEvent event = extractEvent(binlogPosition);
 
@@ -1580,6 +1581,13 @@ public class MySQLExtractor implements RawExtractor
             cleanUpDatabaseResources(conn, null, null);
         }
     }
+    
+    public void prepare() {
+    	url = "jdbc:mysql:thin://192.168.43.140:3306/";
+    	user = "root";
+    	password = "root";
+    	
+    }
 
     // Fetch the database version.
     private String getDatabaseVersion(Database conn) throws ReplicatorException
@@ -1729,8 +1737,11 @@ public class MySQLExtractor implements RawExtractor
 
         // Start the relay log task.
         relayLogTask = new RelayLogTask(relayClient);
+        //relayLogThread = new Thread(relayLogTask, "Relay Client - "
+        //        + runtime.getServiceName());
         relayLogThread = new Thread(relayLogTask, "Relay Client - "
-                + runtime.getServiceName());
+                + "testServer");
+        
         relayLogThread.start();
 
         // Delay until the relay log opens the file and reaches the desired
