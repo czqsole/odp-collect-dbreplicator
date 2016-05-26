@@ -12,6 +12,7 @@ import com.continuent.tungsten.replicator.extractor.ParallelExtractor;
 import com.continuent.tungsten.replicator.extractor.RawExtractor;
 import com.continuent.tungsten.replicator.plugin.PluginContext;
 import com.continuent.tungsten.replicator.plugin.ReplicatorPlugin;
+import com.continuent.tungsten.replicator.thl.THLStoreApplier;
 import com.odp.collect.dbreplicator.extractor.Mysql.MySQLExtractor;
 
 public class Main {
@@ -50,9 +51,11 @@ public class Main {
         //    ((ParallelApplier) applier).setTaskId(0);
 		
 		//ReplicatorPlugin applier = new ApplierWrapper((RawApplier) applier);
+        THLStoreApplier applier = new THLStoreApplier();
 
         //applier.configure(context);
-        //singleThreadStageTask.setApplier((Applier) applier);
+        applier.prepare(context);
+        singleThreadStageTask.setApplier((Applier) applier);
         
 		Thread thread = new Thread(singleThreadStageTask,"task1");
 		thread.start();

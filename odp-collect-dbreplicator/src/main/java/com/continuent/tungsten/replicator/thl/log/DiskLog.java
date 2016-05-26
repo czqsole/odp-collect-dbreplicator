@@ -65,7 +65,8 @@ public class DiskLog
     private boolean              doChecksum                 = true;
 
     /** Name of the log directory. */
-    protected String             logDirName                 = "/opt/tungsten/logs";
+    //protected String             logDirName                 = "/opt/tungsten/logs";
+    private String logDirName          = "E:\\github\\odp-collet-dbreplicator\\odp-collect-dbreplicator\\logs";
 
     /** Name of the class used to serialize events. */
     protected String             eventSerializerClass       = ProtobufSerializer.class

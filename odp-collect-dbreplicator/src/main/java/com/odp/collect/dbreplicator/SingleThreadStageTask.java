@@ -802,18 +802,18 @@ public class SingleThreadStageTask implements Runnable
             applier.apply(event, doCommit, doRollback, syncTHL);
             if (doCommit)
             {
-                schedule.commit();
+                //schedule.commit();
                 blockEventCount = 0;
                 lastCommitMillis = System.currentTimeMillis();
             }
         }
         catch (ApplierException e)
         {
-            if (context.getApplierFailurePolicy() == FailurePolicy.STOP)
+            /*if (context.getApplierFailurePolicy() == FailurePolicy.STOP)
             {
                 throw e;
             }
-            else
+            else*/
             {
                 String message = "Event application failed: seqno="
                         + event.getSeqno() + " fragno=" + event.getFragno()

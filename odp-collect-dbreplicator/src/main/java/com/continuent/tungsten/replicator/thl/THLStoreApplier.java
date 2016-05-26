@@ -90,14 +90,18 @@ public class THLStoreApplier implements Applier
 
     /**
      * Connect to underlying queue. {@inheritDoc}
+     * @throws InterruptedException 
      * 
      * @see com.continuent.tungsten.replicator.plugin.ReplicatorPlugin#prepare(com.continuent.tungsten.replicator.plugin.PluginContext)
      */
-    public void prepare(PluginContext context) throws ReplicatorException
+    public void prepare(PluginContext context) throws ReplicatorException, InterruptedException
     {
         try
         {
-            thl = (THL) context.getStore(storeName);
+            //thl = (THL) context.getStore(storeName);
+        	thl = new THL();
+        	thl.prepareDiskLog();
+        	
             client = thl.connect(false);
             nbErrors = 0;
         }
@@ -151,7 +155,7 @@ public class THLStoreApplier implements Applier
             {
                 // Commit to the log first so it becomes visible as quickly as
                 // possible.
-                commit();
+                //commit();
 
                 // Next sync the THL position if desired.
                 if (syncTHL)

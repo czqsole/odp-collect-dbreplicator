@@ -71,7 +71,8 @@ public class THL implements Store
     /** URL of storage listener. Default listens on all interfaces. */
     private String storageListenerUri = "thl://0.0.0.0:2112/";
 
-    private String logDir          = "/opt/continuent/logs/";
+    //private String logDir          = "/opt/continuent/logs/";
+    private String logDir          = "E:\\github\\odp-collet-dbreplicator\\odp-collect-dbreplicator\\logs";
     private String eventSerializer = ProtobufSerializer.class.getName();
 
     // Data source with which this THL is associated.
@@ -428,6 +429,26 @@ public class THL implements Store
             }
         }
     }
+    
+    public void prepareDiskLog() throws ReplicatorException, InterruptedException {
+    	diskLog = new DiskLog();
+        diskLog.setDoChecksum(doChecksum);
+        diskLog.setEventSerializerClass(eventSerializer);
+        diskLog.setLogDir(logDir);
+        diskLog.setLogFileSize(logFileSize);
+        diskLog.setLogFileRetainMillis(logFileRetainMillis);
+        diskLog.setLogConnectionTimeoutMillis(logConnectionTimeout * 1000);
+        diskLog.setBufferSize(bufferSize);
+        diskLog.setFsyncOnFlush(fsyncOnFlush);
+        if (fsyncOnFlush)
+        {
+            // Only used with fsync.
+            diskLog.setFlushIntervalMillis(flushIntervalMillis);
+        }
+        diskLog.setReadOnly(readOnly);
+        diskLog.prepare();
+        logger.info("Log preparation is complete");
+	}
 
     /**
      * Ensure that the log and catalog restart point are consistent. If we are

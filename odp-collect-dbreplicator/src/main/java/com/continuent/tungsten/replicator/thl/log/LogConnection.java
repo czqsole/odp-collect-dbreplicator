@@ -776,6 +776,7 @@ public class LogConnection
             // Write to the file.
             dataFile.writeRecord(logRecord, logFileSize);
             diskLog.setMaxSeqno(event.getSeqno());
+            logger.info(event.getSeqno());
             if (event.getLastFrag())
                 lastFragno = -1;
             else
