@@ -28,7 +28,7 @@ public class Main {
 		
 		MySQLExtractor mextractor = new MySQLExtractor();
 		mextractor.prepare();
-		mextractor.setLastEventId("mysql-bin.000169:795;-1");
+		mextractor.setLastEventId("mysql-bin.000176:455;-1;113547eb-022a-11e6-ae7e-000c299d4e24:37");
 		//ReplicatorPlugin extractor = stage.getExtractorSpec()
         //        .instantiate(0);
         //if (extractor instanceof RawExtractor)
@@ -39,7 +39,9 @@ public class Main {
         //    ((ParallelExtractor) extractor).setTaskId(0);
 		
 		ReplicatorPlugin extractor = new ExtractorWrapper((RawExtractor) mextractor);
-        //extractor.configure(context);
+        
+		//extractor.configure(context);
+		//这里需要同步一下ExtractorWrapper中seqo，也就是event.seqo
         singleThreadStageTask.setExtractor((Extractor) extractor);
         
         //ReplicatorPlugin applier = stage.getApplierSpec()

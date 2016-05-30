@@ -33,6 +33,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
@@ -43,6 +44,10 @@ import com.continuent.tungsten.common.mysql.MySQLIOs;
 import com.continuent.tungsten.common.mysql.MySQLPacket;
 import com.continuent.tungsten.replicator.ReplicatorException;
 import com.continuent.tungsten.replicator.extractor.ExtractorException;
+import com.github.shyiko.mysql.binlog.GtidSet;
+import com.github.shyiko.mysql.binlog.network.protocol.command.Command;
+import com.github.shyiko.mysql.binlog.network.protocol.command.DumpBinaryLogGtidCommand;
+//import com.odp.collect.dbreplicator.GtidSet;
 
 /**
  * Defines a client to extract binlog events and store them in local relay files
@@ -91,6 +96,7 @@ public class RelayLogClient
     private InputStream               input                       = null;
     private OutputStream              output                      = null;
     private String                    checksum                    = null;
+    private GtidSet gtidSet = null;
 
     /** Create new relay log client instance. */
     public RelayLogClient()
@@ -463,7 +469,8 @@ public class RelayLogClient
             //offset固定是 4？
             logger.info("Requesting binlog data from master: " + binlog + ":"
                     + offset);
-            sendBinlogDumpPacket(output);
+            //sendBinlogDumpPacket(output);
+            sendGtidDumpPacket(output);
         }
         catch (IOException e)
         {
@@ -590,8 +597,65 @@ public class RelayLogClient
         packet.putInt16(0);
         packet.putInt32(serverId);
         if (binlog != null)
-            packet.putString(binlog); //此处的binlog就是最开始从eventId中解析出来的binlog文件名
+            //packet.putString(binlog); //此处的binlog就是最开始从eventId中解析出来的binlog文件名
+        	packet.putString("mysql-bin.000177");
         packet.write(out);
+        out.flush();
+    }
+    
+    /**
+     * Sends a binlog dump gtid request to server.
+     * 
+     * @param out Output stream on which to write packet to server
+     */
+    private void sendGtidDumpPacket(OutputStream out) throws IOException {
+        MySQLPacket packet = new MySQLPacket(200, (byte) 0);
+        //packet.putByte((byte)MySQLConstants.COM_BINLOG_DUMP_GTID);
+        //COM_BINLOG_DUMP_GTID
+        /*packet.putByte((byte) 30);
+        //flags
+        packet.putInt16(0);
+        //server-id
+        packet.putInt32(serverId);
+        //binlog-filename-len
+        //packet.putInt32(binlog.length());
+        //packet.putString(binlog);
+        packet.putInt32(binlog.length());
+        packet.putString(binlog);
+        //binlog-pos
+        packet.putLong((long)offset);
+        
+        Collection<GtidSet.UUIDSet> uuidSets = gtidSet.getUUIDSets();
+        int dataSize = 8  number of uuidSets ;
+        for (GtidSet.UUIDSet uuidSet : uuidSets) {
+            dataSize += 16  uuid  + 8  number of intervals  +
+                uuidSet.getIntervals().size()  number of intervals  * 16  start-end ;
+        }
+        //buffer.writeInteger(dataSize, 4);
+        //buffer.writeLong(uuidSets.size(), 8);
+        packet.putInt32(dataSize);
+        packet.putLong((long)uuidSets.size());
+        for (GtidSet.UUIDSet uuidSet : uuidSets) {
+            //buffer.write(hexToByteArray(uuidSet.getUUID().replace("-", "")));
+        	packet.putBytes(hexToByteArray(uuidSet.getUUID().replace("-", "")));
+            Collection<GtidSet.Interval> intervals = uuidSet.getIntervals();
+            //buffer.writeLong(intervals.size(), 8);
+            packet.putLong(intervals.size());
+            for (GtidSet.Interval interval : intervals) {
+                //buffer.writeLong(interval.getStart(), 8);
+                //buffer.writeLong(interval.getEnd() + 1 , 8);
+            	packet.putLong(interval.getStart());
+            	packet.putLong(interval.getEnd() + 1 );
+            }
+        }
+		*/
+        System.out.println("here");
+        
+        Command command = new DumpBinaryLogGtidCommand(serverId, "", 4, gtidSet);
+        
+        packet.putBytes(command.toByteArray());
+        packet.write(out);
+        //out.write(command.toByteArray());
         out.flush();
     }
 
@@ -626,7 +690,18 @@ public class RelayLogClient
             if (logger.isDebugEnabled())
                 logger.debug(sb.toString());
         }
-
+        
+        {
+        	StringBuffer sb = new StringBuffer("Reading binlog event:");
+            sb.append(" timestamp=").append(timestamp);
+            sb.append(" type_code=").append(typeCode);
+            sb.append(" server_id=").append(serverId);
+            sb.append(" event_length=").append(eventLength);
+            sb.append(" next_position=").append(nextPosition);
+            sb.append(" flags=").append(flags);
+            logger.info(sb.toString());
+        }
+        
         if (typeCode == MysqlBinlog.ROTATE_EVENT)
         {
             // Store ROTATE_EVENT data so that we open up a new binlog event.
@@ -648,7 +723,13 @@ public class RelayLogClient
                 if (logger.isDebugEnabled())
                     logger.debug(sb2.toString());
             }
-
+            
+            {
+            	StringBuffer sb2 = new StringBuffer("ROTATE_EVENT:");
+                sb2.append(" next_start_offset=").append(offset);
+                sb2.append(" next_binlog_name=").append(binlog);
+                logger.info(sb2.toString());
+            }
             // Write rotate_log event only if we have an open relay log file.
             // MySQL also sends same event at the beginning of a new file.
             if (this.relayOutput != null)
@@ -714,6 +795,7 @@ public class RelayLogClient
         relayOutput.write(bytes, header, writeLength);
         relayOutput.flush();
         relayBytes += writeLength;
+        logger.info("relayBytes:" + relayBytes);
         logPosition.setPosition(relayLog, relayBytes);
     }
 
@@ -735,6 +817,8 @@ public class RelayLogClient
                 logger.debug("Adding relay log file name to log queue: "
                         + relayLog.getAbsolutePath());
             }
+            logger.info("Adding relay log file name to log queue: "
+                    + relayLog.getAbsolutePath());
             logQueue.put(relayLog);
         }
 
@@ -803,5 +887,21 @@ public class RelayLogClient
             relayOutput = null;
             relayLog = null;
         }
+    }
+
+	public GtidSet getGtidSet() {
+		return gtidSet;
+	}
+
+	public void setGtidSet(GtidSet gtidSet) {
+		this.gtidSet = gtidSet;
+	}
+	
+	private static byte[] hexToByteArray(String uuid) {
+        byte[] b = new byte[uuid.length() / 2];
+        for (int i = 0, j = 0; j < uuid.length(); j += 2) {
+            b[i++] = (byte) Integer.parseInt(uuid.charAt(j) + "" + uuid.charAt(j + 1), 16);
+        }
+        return b;
     }
 }

@@ -629,6 +629,7 @@ public abstract class LogEvent
         int timeoutInMs = timeout * 1000;
 
         long available;
+        logger.info("length:" + length);
         while ((available = binlog.available()) < (long) length)
         {
             if (!alreadyLogged)
@@ -662,6 +663,7 @@ public abstract class LogEvent
             {
             }
         }
+        logger.info("length:" + length);
         binlog.read(data, offset, length);
     }
 

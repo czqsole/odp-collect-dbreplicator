@@ -61,6 +61,8 @@ import com.continuent.tungsten.replicator.event.ReplOptionParams;
 import com.continuent.tungsten.replicator.extractor.ExtractorException;
 import com.continuent.tungsten.replicator.extractor.RawExtractor;
 import com.continuent.tungsten.replicator.plugin.PluginContext;
+//import com.odp.collect.dbreplicator.GtidSet;
+import com.github.shyiko.mysql.binlog.GtidSet;
 
 /**
  * This class defines a MySQLExtractor
@@ -95,7 +97,7 @@ public class MySQLExtractor implements RawExtractor
     private String                          binlogDir                 = "E:\\github\\odp-collet-dbreplicator\\odp-collect-dbreplicator\\log";
 
     private boolean                         useRelayLogs              = true;
-    private long                            relayLogWaitTimeout       = 0;
+    private long                            relayLogWaitTimeout       = 60;/* 0; */
     private long                            relayLogReadTimeout       = 0;
     private boolean                         deterministicIo           = true;
     private int                             relayLogRetention         = 3;
@@ -158,6 +160,7 @@ public class MySQLExtractor implements RawExtractor
     private Database                        metadataConnection        = null;
     private int                             reconnectTimeoutInSeconds = 180;
     private long                            lastConnectionTime        = 0;
+    private GtidSet                         gtidSet                   = null;
 
     public String getDatabaseSource()
     {
@@ -1186,10 +1189,10 @@ public class MySQLExtractor implements RawExtractor
         }
         catch (ExtractorException e)
         {
-            if (runtime.getExtractorFailurePolicy() == FailurePolicy.STOP)
+            /*if (runtime.getExtractorFailurePolicy() == FailurePolicy.STOP)
                 throw new ExtractorException("Failed to extract from "
                         + position, e);
-            else
+            else*/
                 logger.error("Failed to extract from " + position, e);
 
         }
@@ -1352,6 +1355,9 @@ public class MySQLExtractor implements RawExtractor
             int semicolonIndex = eventId.indexOf(";");
 
             String binlogFileIndex = eventId.substring(0, colonIndex);
+            String gtids = eventId.split(";")[2];
+            logger.info("GTIDs:" + gtids);
+            gtidSet = new GtidSet(gtids);
 
             long binlogOffset;
 
@@ -1715,7 +1721,8 @@ public class MySQLExtractor implements RawExtractor
         // Create a queue for relay logs. This provides flow control to ensure
         // we do not exceed the number of files specified by the relay log
         // retention.
-        relayLogRetention = Math.max(relayLogRetention, 2);
+        //relayLogRetention = Math.max(relayLogRetention, 2);
+        relayLogRetention = Math.max(relayLogRetention, 20);
         relayLogQueue = new LinkedBlockingQueue<File>(relayLogRetention);
         logger.info("Contructing relay log queue: size=" + relayLogRetention);
 
@@ -1728,11 +1735,15 @@ public class MySQLExtractor implements RawExtractor
         relayClient.setPassword(password);
         relayClient.setBinlogDir(binlogDir);
         relayClient.setBinlog(fileName);
+        //relayClient.setOffset((int)offset);/* 这里如果指定offset，得到的binlog和mysql端的就不一致了 */
+        									 /* 所以这个offset有什么用呢？ */
         relayClient.setBinlogPrefix(binlogFilePattern);
         relayClient.setServerId(serverId);
         relayClient.setLogQueue(relayLogQueue);
         relayClient.setReadTimeout(relayLogReadTimeout);
         relayClient.setDeterministicIo(deterministicIo);
+        relayClient.setGtidSet(gtidSet);
+        //relayClient.setReadTimeout(60);
         relayClient.connect();
 
         // Start the relay log task.
@@ -1998,4 +2009,12 @@ public class MySQLExtractor implements RawExtractor
         // TODO Auto-generated method stub
         
     }
+
+	public GtidSet getGtidSet() {
+		return gtidSet;
+	}
+
+	public void setGtidSet(GtidSet gtidSet) {
+		this.gtidSet = gtidSet;
+	}
 }
