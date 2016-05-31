@@ -1,5 +1,7 @@
 package com.odp.collect.dbreplicator;
 
+import java.io.IOException;
+
 import com.continuent.tungsten.replicator.ReplicatorException;
 import com.continuent.tungsten.replicator.applier.Applier;
 import com.continuent.tungsten.replicator.applier.ApplierWrapper;
@@ -13,7 +15,8 @@ import com.continuent.tungsten.replicator.extractor.RawExtractor;
 import com.continuent.tungsten.replicator.plugin.PluginContext;
 import com.continuent.tungsten.replicator.plugin.ReplicatorPlugin;
 import com.continuent.tungsten.replicator.thl.THLStoreApplier;
-import com.odp.collect.dbreplicator.extractor.Mysql.MySQLExtractor;
+import com.github.shyiko.mysql.binlog.BinaryLogClient;
+import com.odp.collect.dbreplicator.extractor.mysql.MySQLExtractor;
 
 public class Main {
 	public void prepare() throws ReplicatorException, InterruptedException {
@@ -28,6 +31,7 @@ public class Main {
 		
 		MySQLExtractor mextractor = new MySQLExtractor();
 		mextractor.prepare();
+		String lastEvent = getLastEventByGtid("113547eb-022a-11e6-ae7e-000c299d4e24:37");
 		mextractor.setLastEventId("mysql-bin.000176:455;-1;113547eb-022a-11e6-ae7e-000c299d4e24:37");
 		//ReplicatorPlugin extractor = stage.getExtractorSpec()
         //        .instantiate(0);
@@ -61,6 +65,26 @@ public class Main {
         
 		Thread thread = new Thread(singleThreadStageTask,"task1");
 		thread.start();
+	}
+	
+	public static String getLastEventByGtid(String gtid) {
+		BinaryLogClient binaryLogClient = new BinaryLogClient("192.168.43.140", 3306, "root", "root");
+		binaryLogClient.setGtidSet("");//gtid
+		binaryLogClient.setGtidToFind(gtid);
+		StringBuilder sb = new StringBuilder();
+		try {
+			 binaryLogClient.connect();
+			 System.out.println("文件名：" + binaryLogClient.getBinlogFilename());  
+		     System.out.println("位置：" + binaryLogClient.getBinlogPosition());
+		     sb.append(binaryLogClient.getBinlogFilename());
+		     sb.append(":");
+		     sb.append(binaryLogClient.getBinlogPosition());
+		     
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return sb.toString();
 	}
 	
 	public static void main(String[] args) throws ReplicatorException, InterruptedException {

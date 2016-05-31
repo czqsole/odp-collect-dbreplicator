@@ -114,6 +114,7 @@ public class BinaryLogClient implements BinaryLogClientMXBean {
     private Gtid mariaGtid;
     private String gtid;
     private boolean mariaDB;
+    private String gtidToFind;
 
     /**
      * Alias for BinaryLogClient("localhost", 3306, &lt;no schema&gt; = null, username, password).
@@ -727,7 +728,7 @@ public class BinaryLogClient implements BinaryLogClientMXBean {
             	//----------------测试代码begin--------
             	GtidEventData gtidEventData = getInternalEventData(event);
 //              	System.out.println("-----------"+gtidEventData.getGtid());
-              	if( "113547eb-022a-11e6-ae7e-000c299d4e24:35".equals(gtidEventData.getGtid()) )
+              	if( gtidToFind.equals(gtidEventData.getGtid()) )
               	{
               		EventHeaderV4 header = previousGtidEvent.getHeader();
               		System.out.println("-----------"+gtidEventData.getGtid());
@@ -774,7 +775,7 @@ public class BinaryLogClient implements BinaryLogClientMXBean {
         if(eventType == EventType.GTID)
         {
         	GtidEventData gtidEventData1 = getInternalEventData(event);
-        	if( "113547eb-022a-11e6-ae7e-000c299d4e24:35".equals(gtidEventData1.getGtid()) )
+        	if( gtidToFind.equals(gtidEventData1.getGtid()) )
           	{
           		EventHeaderV4 header = previousGtidEvent.getHeader();
           		System.out.println("-----22------"+gtidEventData1.getGtid());
@@ -1068,7 +1069,14 @@ public class BinaryLogClient implements BinaryLogClientMXBean {
 
         return new DumpBinaryLogCommand(serverId, binlogFilename, binlogPosition);
     }
-    // endregion
+    public String getGtidToFind() {
+		return gtidToFind;
+	}
+
+	public void setGtidToFind(String gtidToFind) {
+		this.gtidToFind = gtidToFind;
+	}
+	// endregion
     /**
      * {@link BinaryLogClient}'s event listener.
      */
