@@ -263,7 +263,8 @@ public class BinlogReader implements FilenameFilter, Cloneable
                         "Unexpected start event type code: file="
                                 + this.fileName + " type code=" + typeCode);
             }
-
+            /*---- czq add ----*/
+            logger.info("version:" + version);
             // If we have predefined position to start from, let's skip until
             // the position. This situation can happen if the extractor is
             // cloned and we need to seek to the correct read position.

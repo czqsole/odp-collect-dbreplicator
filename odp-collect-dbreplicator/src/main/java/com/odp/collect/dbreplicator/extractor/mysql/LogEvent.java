@@ -147,7 +147,6 @@ public abstract class LogEvent
         {
             eventType = LittleEndianConversion.convert1ByteToInt(buffer,
                     MysqlBinlog.EVENT_TYPE_OFFSET);
-
             switch (eventType)
             {
                 case MysqlBinlog.QUERY_EVENT :
@@ -281,12 +280,14 @@ public abstract class LogEvent
                     logger.warn("Skipping unrecognized binlog event type "
                             + eventType);
             }
+            if(event != null)
+            	logger.info("eventType:" + eventType + "-" + event.getType());
 
         }
         catch (IOException e1)
         {
         }
-
+        
         return event;
     }
 
