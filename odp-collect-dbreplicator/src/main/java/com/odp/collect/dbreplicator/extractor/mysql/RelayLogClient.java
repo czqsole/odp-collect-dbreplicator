@@ -651,7 +651,7 @@ public class RelayLogClient
 		*/
         System.out.println("here");
         
-        Command command = new DumpBinaryLogGtidCommand(serverId, "", 4, gtidSet);
+        Command command = new DumpBinaryLogGtidCommand(serverId, binlog, 4, gtidSet);
         
         packet.putBytes(command.toByteArray());
         packet.write(out);

@@ -276,6 +276,12 @@ public abstract class LogEvent
                     event = new MariaDBGTIDEvent(buffer, eventLength,
                             descriptionEvent, currentPosition);
                     break;
+                case MysqlBinlog.GTID_LOG_EVENT :
+                	if (logger.isDebugEnabled())
+                        logger.debug("reading GTID_LOG_EVENT");
+                	event = new GtidLogEvent(buffer, eventLength, 
+                			descriptionEvent, useBytesForString, currentPosition);
+                	break;
                 default :
                     logger.warn("Skipping unrecognized binlog event type "
                             + eventType);
