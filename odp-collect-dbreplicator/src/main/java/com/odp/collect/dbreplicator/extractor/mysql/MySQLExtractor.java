@@ -161,6 +161,7 @@ public class MySQLExtractor implements RawExtractor
     private int                             reconnectTimeoutInSeconds = 180;
     private long                            lastConnectionTime        = 0;
     private GtidSet                         gtidSet                   = null;
+    private int 							binlogSeq				  = 0;
 
     public String getDatabaseSource()
     {
@@ -1379,6 +1380,7 @@ public class MySQLExtractor implements RawExtractor
                 binlogFile = binlogFilePattern + "." + binlogFileIndex;
 
             // Set the binlog position.
+            binlogFile = binlogFile + "." + serverId + "." + binlogSeq;
             binlogPosition = new BinlogReader(binlogOffset, binlogFile,
                     binlogDir, binlogFilePattern, bufferSize);
         }
@@ -1735,6 +1737,7 @@ public class MySQLExtractor implements RawExtractor
         relayClient.setPassword(password);
         relayClient.setBinlogDir(binlogDir);
         relayClient.setBinlog(fileName);
+        //relayClient.setBinlog(fileName, serverId, binlogSeq);
         //relayClient.setOffset((int)offset);/* 这里如果指定offset，得到的binlog和mysql端的就不一致了 */
         									 /* 所以这个offset有什么用呢？ */
         relayClient.setBinlogPrefix(binlogFilePattern);
@@ -1831,6 +1834,7 @@ public class MySQLExtractor implements RawExtractor
                 {
                     // If we can't remove the file from the queue it could
                     // indicate a bug.
+                	//logger.info();
                     if (logger.isInfoEnabled())
                     {
                         logger.debug("Removing relay log file from relay log queue: "
@@ -2016,5 +2020,13 @@ public class MySQLExtractor implements RawExtractor
 
 	public void setGtidSet(GtidSet gtidSet) {
 		this.gtidSet = gtidSet;
+	}
+
+	public int getBinlogSeq() {
+		return binlogSeq;
+	}
+
+	public void setBinlogSeq(int binlogSeq) {
+		this.binlogSeq = binlogSeq;
 	}
 }

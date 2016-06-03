@@ -96,7 +96,8 @@ public class RelayLogClient
     private InputStream               input                       = null;
     private OutputStream              output                      = null;
     private String                    checksum                    = null;
-    private GtidSet gtidSet = null;
+    private GtidSet                   gtidSet 					  = null;
+    private int						  binlogSeq					  = 0;
 
     /** Create new relay log client instance. */
     public RelayLogClient()
@@ -141,6 +142,10 @@ public class RelayLogClient
     public void setBinlog(String binlog)
     {
         this.binlog = binlog;
+    }
+    
+    public void setBinlog(String binlog, long serverId, int binlogSeq){
+    	this.binlog = binlog + "." + serverId + "." + binlogSeq;
     }
 
     public String getBinlogPrefix()
@@ -714,7 +719,10 @@ public class RelayLogClient
             {
                 binlog = packet.getString();
             }
-
+            
+            /* czq add */
+            binlog = binlog + "." + serverId + "." + binlogSeq;
+            
             if (logger.isDebugEnabled())
             {
                 StringBuffer sb2 = new StringBuffer("ROTATE_EVENT:");

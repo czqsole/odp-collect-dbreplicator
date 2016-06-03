@@ -115,7 +115,7 @@ public class BinaryLogClient implements BinaryLogClientMXBean {
     private String gtid;
     private boolean mariaDB;
     private String gtidToFind;
-
+    private String gtidPos;
     /**
      * Alias for BinaryLogClient("localhost", 3306, &lt;no schema&gt; = null, username, password).
      * @see BinaryLogClient#BinaryLogClient(String, int, String, String, String)
@@ -727,6 +727,7 @@ public class BinaryLogClient implements BinaryLogClientMXBean {
             if (previousGtidEvent != null) {
             	//----------------测试代码begin--------
             	GtidEventData gtidEventData = getInternalEventData(event);
+            	//System.out.println();
 //              	System.out.println("-----------"+gtidEventData.getGtid());
               	if( gtidToFind.equals(gtidEventData.getGtid()) )
               	{
@@ -780,7 +781,8 @@ public class BinaryLogClient implements BinaryLogClientMXBean {
           		EventHeaderV4 header = previousGtidEvent.getHeader();
           		System.out.println("-----22------"+gtidEventData1.getGtid());
           		System.out.println("-----22------"+this.binlogFilename);
-          		System.out.println("-----22------"+header.getNextPosition());
+          		System.out.println("-----22------"+header.getNextPosition() + "-----" + header.getPosition());
+          		this.gtidPos = String.valueOf(header.getPosition());
           		try {
 					disconnect();
 				} catch (IOException e) {
@@ -793,7 +795,15 @@ public class BinaryLogClient implements BinaryLogClientMXBean {
         previousEvent = event;
     }
 
-    private boolean advanceGTID() {
+    public String getGtidPos() {
+		return gtidPos;
+	}
+
+	public void setGtidPos(String gtidPos) {
+		this.gtidPos = gtidPos;
+	}
+
+	private boolean advanceGTID() {
         GtidEventData gtidEventData = getInternalEventData(previousGtidEvent);
         synchronized (gtidSetAccessLock) {
             return gtidSet.add(gtidEventData.getGtid());

@@ -31,7 +31,7 @@ public class Main {
 		
 		MySQLExtractor mextractor = new MySQLExtractor();
 		mextractor.prepare();
-		String lastEvent = getLastEventByGtid("113547eb-022a-11e6-ae7e-000c299d4e24:37");
+		String lastEvent = getLastEventByGtid("113547eb-022a-11e6-ae7e-000c299d4e24:40");
 		//mextractor.setLastEventId("mysql-bin.000176:455;-1;113547eb-022a-11e6-ae7e-000c299d4e24:37");
 		System.out.println("lastEvent:" + lastEvent);
 		mextractor.setLastEventId(lastEvent);
@@ -66,7 +66,7 @@ public class Main {
         singleThreadStageTask.setApplier((Applier) applier);
         
 		Thread thread = new Thread(singleThreadStageTask,"task1");
-		//thread.start();
+		thread.start();
 	}
 	
 	public static String getLastEventByGtid(String gtid) {
@@ -80,7 +80,7 @@ public class Main {
 		     System.out.println("位置：" + binaryLogClient.getBinlogPosition());
 		     sb.append(binaryLogClient.getBinlogFilename());
 		     sb.append(":");
-		     sb.append(binaryLogClient.getBinlogPosition());
+		     sb.append(binaryLogClient.getGtidPos());
 		     sb.append(";-1;");
 		     sb.append(gtid);
 		     
