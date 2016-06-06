@@ -2,6 +2,8 @@ package com.odp.collect.dbreplicator;
 
 import java.io.IOException;
 
+import org.omg.PortableInterceptor.ServerIdHelper;
+
 import com.continuent.tungsten.replicator.ReplicatorException;
 import com.continuent.tungsten.replicator.applier.Applier;
 import com.continuent.tungsten.replicator.applier.ApplierWrapper;
@@ -19,6 +21,17 @@ import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.odp.collect.dbreplicator.extractor.mysql.MySQLExtractor;
 
 public class Main {
+	
+	private int serverId = 0;
+	
+	public int getServerId() {
+		return serverId;
+	}
+
+	public void setServerId(int serverId) {
+		this.serverId = serverId;
+	}
+
 	public void prepare() throws ReplicatorException, InterruptedException {
 		Pipeline pipeline = new Pipeline();
 		
@@ -35,6 +48,7 @@ public class Main {
 		//mextractor.setLastEventId("mysql-bin.000176:455;-1;113547eb-022a-11e6-ae7e-000c299d4e24:37");
 		System.out.println("lastEvent:" + lastEvent);
 		mextractor.setLastEventId(lastEvent);
+		mextractor.setServerId(serverId);
 		//ReplicatorPlugin extractor = stage.getExtractorSpec()
         //        .instantiate(0);
         //if (extractor instanceof RawExtractor)
@@ -70,7 +84,7 @@ public class Main {
 	}
 	
 	public static String getLastEventByGtid(String gtid) {
-		BinaryLogClient binaryLogClient = new BinaryLogClient("192.168.43.140", 3306, "root", "root");
+		BinaryLogClient binaryLogClient = new BinaryLogClient("192.168.43.137", 3306, "root", "root");
 		binaryLogClient.setGtidSet("");//gtid
 		binaryLogClient.setGtidToFind(gtid);
 		StringBuilder sb = new StringBuilder();
@@ -78,6 +92,7 @@ public class Main {
 			 binaryLogClient.connect();
 			 System.out.println("文件名：" + binaryLogClient.getBinlogFilename());  
 		     System.out.println("位置：" + binaryLogClient.getBinlogPosition());
+		     this.serverId = (int) binaryLogClient.getServerId();
 		     sb.append(binaryLogClient.getBinlogFilename());
 		     sb.append(":");
 		     sb.append(binaryLogClient.getGtidPos());

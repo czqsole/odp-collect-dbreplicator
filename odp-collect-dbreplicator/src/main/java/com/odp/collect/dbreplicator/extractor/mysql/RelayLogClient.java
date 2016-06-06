@@ -98,7 +98,8 @@ public class RelayLogClient
     private String                    checksum                    = null;
     private GtidSet                   gtidSet 					  = null;
     private int						  binlogSeq					  = 0;
-
+	private String					  mybinlog					  = null;
+	private MySQLExtractor			  extractor					  = null;
     /** Create new relay log client instance. */
     public RelayLogClient()
     {
@@ -144,8 +145,8 @@ public class RelayLogClient
         this.binlog = binlog;
     }
     
-    public void setBinlog(String binlog, long serverId, int binlogSeq){
-    	this.binlog = binlog + "." + serverId + "." + binlogSeq;
+    public void setMyBinlog(String binlog, long serverId, int binlogSeq){
+    	this.mybinlog = binlog + "." + serverId + "." + binlogSeq;
     }
 
     public String getBinlogPrefix()
@@ -371,18 +372,25 @@ public class RelayLogClient
             if (this.binlog == null)
                 baseLog = "";
             else
-                baseLog = binlog;
-
+                //baseLog = binlog;
+            	baseLog = mybinlog;
+            
             for (File child : relayDir.listFiles())
             {
+            	//logger.info(child.getName().split("."));
+            	String[] names = child.getName().split("\\.");
+            	for(String name: names) {
+            		logger.info("-|" + name + "|-");
+            	}
                 // Find binlogs that sort higher than the requested file.
                 if (!child.isFile())
                     continue;
                 else if (!child.getName().startsWith(this.binlogPrefix))
                     continue;
-                else if (child.getName().compareTo(baseLog) < 0)
+                //else if (child.getName().compareTo(baseLog) < 0)
+                else if (child.getName().split("\\.")[3].compareTo(baseLog.split("\\.")[3]) < 0)
                     continue;
-
+                
                 if (child.delete())
                     logger.info("Cleaned up binlog file: "
                             + child.getAbsolutePath());
@@ -721,7 +729,8 @@ public class RelayLogClient
             }
             
             /* czq add */
-            binlog = binlog + "." + serverId + "." + binlogSeq;
+            //binlogSeq += 1;
+            mybinlog = binlog + "." + serverId + "." + binlogSeq;
             
             if (logger.isDebugEnabled())
             {
@@ -744,7 +753,10 @@ public class RelayLogClient
             {
                 writePacketToRelayLog(packet);
                 closeBinlog();
+                
             }
+            binlogSeq += 1;
+            //this.extractor.setBinlogSeq(binlogSeq);
         }
         else
         {
@@ -811,7 +823,8 @@ public class RelayLogClient
     private void openBinlog() throws IOException, InterruptedException
     {
         // Compute file name.
-        relayLog = new File(relayDir, binlog);
+        //relayLog = new File(relayDir, binlog);
+        relayLog = new File(relayDir, mybinlog);
         logger.info("Rotating to new relay log: name="
                 + relayLog.getAbsolutePath());
 
@@ -912,4 +925,28 @@ public class RelayLogClient
         }
         return b;
     }
+
+	public String getMybinlog() {
+		return mybinlog;
+	}
+
+	public void setMybinlog(String mybinlog) {
+		this.mybinlog = mybinlog;
+	}
+	
+	public int getBinlogSeq() {
+		return binlogSeq;
+	}
+
+	public void setBinlogSeq(int binlogSeq) {
+		this.binlogSeq = binlogSeq;
+	}
+
+	public MySQLExtractor getExtractor() {
+		return extractor;
+	}
+
+	public void setExtractor(MySQLExtractor extractor) {
+		this.extractor = extractor;
+	}
 }

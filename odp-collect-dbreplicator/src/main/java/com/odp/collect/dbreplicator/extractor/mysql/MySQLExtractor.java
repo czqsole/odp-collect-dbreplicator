@@ -921,9 +921,14 @@ public class MySQLExtractor implements RawExtractor
                     else
                     {
                         // It's real so we need to rotate the log.
+                    	serverId = ((RotateLogEvent) logEvent).serverId;
                         position.close();
-                        position.setFileName(((RotateLogEvent) logEvent)
+                        binlogSeq += 1;/* czq add */
+                        //position.setFileName(((RotateLogEvent) logEvent)
+                        //        .getNewBinlogFilename());
+                        position.setBinlog(((RotateLogEvent) logEvent)
                                 .getNewBinlogFilename());
+                        position.setFileName(position.getBinlog() + "." + serverId + "." + binlogSeq);
                         position.open();
                         // Kick off an asynchronous scan for old relay logs.
                         if (useRelayLogs)
@@ -1380,9 +1385,14 @@ public class MySQLExtractor implements RawExtractor
                 binlogFile = binlogFilePattern + "." + binlogFileIndex;
 
             // Set the binlog position.
-            binlogFile = binlogFile + "." + serverId + "." + binlogSeq;
-            binlogPosition = new BinlogReader(binlogOffset, binlogFile,
-                    binlogDir, binlogFilePattern, bufferSize);
+            String mybinlogFile = binlogFile + "." + serverId + "." + binlogSeq;
+            //binlogPosition = new BinlogReader(binlogOffset, binlogFile,
+            //        binlogDir, binlogFilePattern, bufferSize);
+            
+            /* czq add */
+            binlogPosition = new BinlogReader(binlogOffset, mybinlogFile,
+                    binlogDir, binlogFilePattern, bufferSize, binlogFile);
+            logger.info("mybinlogFileName:" + binlogPosition.getFileName());
         }
         else
         {
@@ -1591,7 +1601,7 @@ public class MySQLExtractor implements RawExtractor
     }
     
     public void prepare() {
-    	url = "jdbc:mysql:thin://192.168.43.140:3306/";
+    	url = "jdbc:mysql:thin://192.168.43.137:3306/";
     	user = "root";
     	password = "root";
     	
@@ -1737,7 +1747,9 @@ public class MySQLExtractor implements RawExtractor
         relayClient.setPassword(password);
         relayClient.setBinlogDir(binlogDir);
         relayClient.setBinlog(fileName);
-        //relayClient.setBinlog(fileName, serverId, binlogSeq);
+        /* czq add */
+        relayClient.setBinlogSeq(binlogSeq);
+        relayClient.setMyBinlog(fileName, serverId, binlogSeq);
         //relayClient.setOffset((int)offset);/* 这里如果指定offset，得到的binlog和mysql端的就不一致了 */
         									 /* 所以这个offset有什么用呢？ */
         relayClient.setBinlogPrefix(binlogFilePattern);
@@ -1746,6 +1758,8 @@ public class MySQLExtractor implements RawExtractor
         relayClient.setReadTimeout(relayLogReadTimeout);
         relayClient.setDeterministicIo(deterministicIo);
         relayClient.setGtidSet(gtidSet);
+        /* czq add */
+        relayClient.setExtractor(this);
         //relayClient.setReadTimeout(60);
         relayClient.connect();
 
@@ -1864,8 +1878,11 @@ public class MySQLExtractor implements RawExtractor
             if (relayLogTask == null)
             {
                 // We must have a binlog position by time this is called.
-                startRelayLogs(binlogPosition.getFileName(),
-                        binlogPosition.getPosition());
+                //startRelayLogs(binlogPosition.getFileName(),
+                //        binlogPosition.getPosition());
+                /* czq add */
+                startRelayLogs(binlogPosition.getBinlog(), 
+                		binlogPosition.getPosition());
             }
             else if (relayLogTask.isFinished())
                 throw new ExtractorException(

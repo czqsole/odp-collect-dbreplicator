@@ -75,6 +75,7 @@ public class BinlogReader implements FilenameFilter, Cloneable
 
     // Delay in milliseconds to wait for binlog writes to flush fully.
     private int                   binlogFlushDelayMillis = 5000;
+    private String				  binlog				 = null;
 
     /**
      * Defines only binlog directory and binlog file base name.
@@ -107,7 +108,20 @@ public class BinlogReader implements FilenameFilter, Cloneable
         this.baseName = baseName;
         this.bufferSize = bufferSize;
     }
-
+    
+    public BinlogReader(long start, String fileName, String directory,
+            String baseName, int bufferSize, String binlog)
+    {
+        this.bfdi = null;
+        this.startPosition = start;
+        this.eventID = 0;
+        this.fileName = fileName;
+        this.directory = directory;
+        this.baseName = baseName;
+        this.bufferSize = bufferSize;
+        this.binlog = binlog;
+        //this.setBinlog(binlog);
+    }
     /**
      * Clones the current reader position. Clients call open() on the resulting
      * file to create an alternate read stream.
@@ -149,6 +163,8 @@ public class BinlogReader implements FilenameFilter, Cloneable
             // Hack to avoid crashing during log rotate. MySQL seems to write
             // log rotate event in the old file before creating new file. We
             // wait for a few seconds, polling file every 10 msecs.
+            logger.info("fileFullName:" + getDirectory() + File.separator
+                    + getFileName());
             File file = new File(getDirectory() + File.separator
                     + getFileName());
             int tryCnt = 0;
@@ -502,4 +518,12 @@ public class BinlogReader implements FilenameFilter, Cloneable
     {
         return fileName + " (" + getPosition() + ")";
     }
+
+	public String getBinlog() {
+		return binlog;
+	}
+
+	public void setBinlog(String binlog) {
+		this.binlog = binlog;
+	}
 }
