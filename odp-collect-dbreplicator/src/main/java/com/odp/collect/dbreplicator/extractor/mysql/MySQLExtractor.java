@@ -1760,6 +1760,7 @@ public class MySQLExtractor implements RawExtractor
         relayClient.setGtidSet(gtidSet);
         /* czq add */
         relayClient.setExtractor(this);
+        relayClient.setBinlogSeq(binlogSeq);
         //relayClient.setReadTimeout(60);
         relayClient.connect();
 
@@ -2045,5 +2046,13 @@ public class MySQLExtractor implements RawExtractor
 
 	public void setBinlogSeq(int binlogSeq) {
 		this.binlogSeq = binlogSeq;
+	}
+	
+    public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url ="jdbc:mysql:thin://" + url + ":3306/";
 	}
 }

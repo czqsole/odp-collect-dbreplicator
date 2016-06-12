@@ -49,6 +49,9 @@ import com.continuent.tungsten.replicator.storage.ParallelStore;
 import com.continuent.tungsten.replicator.storage.Store;
 import com.continuent.tungsten.replicator.util.Watch;
 
+//import com.odp.collect.dbreplicator.plugin.PluginContext;
+//import com.odp.collect.dbreplicator.plugin.ReplicatorPlugin;
+
 /**
  * Stores the information related to a replication pipeline, which is a set of
  * independent processing stages.

@@ -349,6 +349,20 @@ public class BinaryLogClient implements BinaryLogClientMXBean {
             GreetingPacket greetingPacket = receiveGreeting();
             authenticate(greetingPacket.getScramble(), greetingPacket.getServerCollation());
             connectionId = greetingPacket.getThreadId();
+            
+            /* czq add */
+            ResultSetRowPacket[] resultSet;
+            channel.write(new QueryCommand("select @@server_id"));
+            resultSet = readResultSet();
+            if (resultSet.length == 0) {
+                throw new IOException("Failed to get current server id.");
+            }
+            ResultSetRowPacket resultSetRow = resultSet[0];
+            //String s0 = resultSetRow.getValue(0);
+            //String s1 = resultSetRow.getValue(1);
+            logger.info("select @@server_id:" + resultSetRow.getValue(0) + "--" );
+            this.serverId = Long.valueOf(resultSetRow.getValue(0));
+            
             if (binlogFilename == null && gtidSet == null) {
                 autoPosition();
             }
@@ -782,6 +796,7 @@ public class BinaryLogClient implements BinaryLogClientMXBean {
           		System.out.println("-----22------"+gtidEventData1.getGtid());
           		System.out.println("-----22------"+this.binlogFilename);
           		System.out.println("-----22------"+header.getNextPosition() + "-----" + header.getPosition());
+          		//this.serverId = header.getServerId();
           		this.gtidPos = String.valueOf(header.getPosition());
           		try {
 					disconnect();
