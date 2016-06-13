@@ -37,7 +37,7 @@ public class Main {
 	
 	private int 							serverId = 0;
 	private BinaryLogClient 				binaryLogClient = null;
-	private String 							url = "192.168.43.137";  /* "192.168.43.137" */                  
+	private String 							url = "192.168.43.140";  /* "192.168.43.137" */                  
 	private ReplicationServiceManager       replicationServiceManager;
 	private OpenReplicatorManagerMBean 		orm = null;
 	
@@ -55,6 +55,11 @@ public class Main {
 		File confDir = ReplicatorRuntimeConf.locateReplicatorConfDir();
         File propsFile = new File(confDir, CONFIG_FILE);
         properties = PropertiesManager.loadProperties(propsFile);
+        //properties.store(null);
+        
+        //System.out.println(properties.get("port"));
+        
+        /* RunTimeConf 暂时不用了*/
 		/*replicationServiceManager = new ReplicationServiceManager();
 		
 		String serverName = "Test";
@@ -125,7 +130,7 @@ public class Main {
 		singleThreadStageTask.setSchedule(new SimpleSchedule(stage, singleThreadStageTask));
 		
 		MySQLExtractor mextractor = new MySQLExtractor();
-		mextractor.prepare();
+		mextractor.prepare(properties);
 		mextractor.setUrl(url);
 		mextractor.setBinlogSeq(17);
 		String lastEvent = getLastEventByGtid("113547eb-022a-11e6-ae7e-000c299d4e24:55");
@@ -165,7 +170,7 @@ public class Main {
         singleThreadStageTask.setApplier((Applier) applier);
         
 		Thread thread = new Thread(singleThreadStageTask,"task1");
-		thread.start();
+		//thread.start();
 	}
 	
 	public void start() {
@@ -198,8 +203,9 @@ public class Main {
 		return sb.toString();
 	}
 	
-	public static void main(String[] args) throws ReplicatorException, InterruptedException {
+	public static void main(String[] args) throws Exception {
 		Main main = new Main();
+		main.configure();
 		main.prepare();
 	}
 }

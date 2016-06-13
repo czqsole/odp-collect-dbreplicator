@@ -35,6 +35,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.log4j.Logger;
 
 import com.continuent.tungsten.common.commands.FileCommands;
+import com.continuent.tungsten.common.config.TungstenProperties;
 import com.continuent.tungsten.replicator.ReplicatorException;
 import com.continuent.tungsten.replicator.conf.FailurePolicy;
 import com.continuent.tungsten.replicator.conf.ReplicatorRuntime;
@@ -1604,6 +1605,16 @@ public class MySQLExtractor implements RawExtractor
     	url = "jdbc:mysql:thin://192.168.43.137:3306/";
     	user = "root";
     	password = "root";
+    	
+    }
+    
+    public void prepare(TungstenProperties properties) {
+    	String ip = properties.get("host");
+    	String port = properties.get("port");
+    	url = "jdbc:mysql:thin://" + ip + ":" + port + "/";
+    	user = properties.get("user");
+    	password = properties.get("password");
+    	logger.info(url + " " + user + " " + password);
     	
     }
 
